@@ -1,4 +1,4 @@
-baseURL = "http://example.org/"
+baseURL = "https://thumbler.dev/"
 languageCode = "en-us"
 title = "thumbler.dev"
 theme = "lanyon-hugo"
