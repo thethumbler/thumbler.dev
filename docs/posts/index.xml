@@ -6,7 +6,7 @@
     <description>Recent content in Posts on thumbler.dev</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
-    <lastBuildDate>Sun, 06 Sep 2020 21:54:35 +0200</lastBuildDate>
+    <lastBuildDate>Wed, 14 Oct 2020 00:00:00 +0200</lastBuildDate>
     
 	<atom:link href="http://example.org/posts/index.xml" rel="self" type="application/rss+xml" />
     
@@ -14,7 +14,7 @@
     <item>
       <title>Linux system in an hour or less</title>
       <link>http://example.org/posts/lfs-in-an-hour-or-less/</link>
-      <pubDate>Sun, 06 Sep 2020 21:54:35 +0200</pubDate>
+      <pubDate>Wed, 14 Oct 2020 00:00:00 +0200</pubDate>
       
       <guid>http://example.org/posts/lfs-in-an-hour-or-less/</guid>
       <description>&amp;ldquo; When you don’t create things, you become defined by your tastes rather than ability. Your tastes only narrow and exclude people. so create. &amp;rdquo; &amp;mdash; why the lucky stiff  Consider the following question from section II: Audience of Linux From Scratch (LFS) project:

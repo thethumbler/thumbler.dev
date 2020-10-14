@@ -45,7 +45,7 @@ html {
 }
 
 h1, h2, h3, h4, h5, h6 {
-  font-family: "Glegoo", "PT Sans", Helvetica, Arial, sans-serif;
+  font-family: "PT Sans", Helvetica, Arial, sans-serif;
   font-weight: 400;
   color: #313131;
   letter-spacing: -.025rem;
@@ -558,4 +558,8 @@ a.pagination-item:hover {
 /* Only one tweak for a reverse layout */
 .layout-reverse.sidebar-overlay #sidebar-checkbox:checked ~ .sidebar {
   box-shadow: -.25rem 0 .5rem rgba(0,0,0,.1);
+}
+.sidebar-checkbox {
+  /* fixes navbar behavior <https://github.com/poole/lanyon/issues/192> */
+  display: none;
 }
