@@ -2,21 +2,21 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
     <title>Posts on thumbler.dev</title>
-    <link>http://example.org/posts/</link>
+    <link>https://thumbler.dev/posts/</link>
     <description>Recent content in Posts on thumbler.dev</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
     <lastBuildDate>Wed, 14 Oct 2020 00:00:00 +0200</lastBuildDate>
     
-	<atom:link href="http://example.org/posts/index.xml" rel="self" type="application/rss+xml" />
+	<atom:link href="https://thumbler.dev/posts/index.xml" rel="self" type="application/rss+xml" />
     
     
     <item>
       <title>Linux system in an hour or less</title>
-      <link>http://example.org/posts/lfs-in-an-hour-or-less/</link>
+      <link>https://thumbler.dev/posts/lfs-in-an-hour-or-less/</link>
       <pubDate>Wed, 14 Oct 2020 00:00:00 +0200</pubDate>
       
-      <guid>http://example.org/posts/lfs-in-an-hour-or-less/</guid>
+      <guid>https://thumbler.dev/posts/lfs-in-an-hour-or-less/</guid>
       <description>&amp;ldquo; When you don’t create things, you become defined by your tastes rather than ability. Your tastes only narrow and exclude people. so create. &amp;rdquo; &amp;mdash; why the lucky stiff  Consider the following question from section II: Audience of Linux From Scratch (LFS) project:
  Why go through all the hassle of manually building a Linux system from scratch when you can just download and install an existing one?</description>
     </item>
