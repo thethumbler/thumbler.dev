@@ -1,0 +1,6 @@
+<center style="font-style: italic; font-weight: bold; padding: 20px; color: #6a6a6a">
+    <span style="font-size: 30px">&ldquo;</span>
+        {{ .Inner }}
+    <span style="font-size: 30px">&rdquo;</span>
+    {{ if (index .Params 0) }}&mdash; {{ index .Params 0 }}{{ end }}
+</center>
