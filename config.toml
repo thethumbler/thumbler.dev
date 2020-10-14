@@ -1,0 +1,14 @@
+baseURL = "http://example.org/"
+languageCode = "en-us"
+title = "thumbler.dev"
+theme = "lanyon-hugo"
+publishDir = "docs"
+
+[params]
+    title = "thumbler.dev"
+    description = "a hacking blog"
+
+[markup]
+  [markup.goldmark]
+    [markup.goldmark.renderer]
+      unsafe = true

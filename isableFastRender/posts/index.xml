@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Posts on thumbler.dev</title>
+    <link>http://localhost:1313/posts/</link>
+    <description>Recent content in Posts on thumbler.dev</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-us</language>
+    <lastBuildDate>Sun, 06 Sep 2020 21:54:35 +0200</lastBuildDate>
+    
+	<atom:link href="http://localhost:1313/posts/index.xml" rel="self" type="application/rss+xml" />
+    
+    
+    <item>
+      <title>Linux system in an hour or less</title>
+      <link>http://localhost:1313/posts/lfs-in-an-hour-or-less/</link>
+      <pubDate>Sun, 06 Sep 2020 21:54:35 +0200</pubDate>
+      
+      <guid>http://localhost:1313/posts/lfs-in-an-hour-or-less/</guid>
+      <description>&amp;ldquo; When you don’t create things, you become defined by your tastes rather than ability. Your tastes only narrow and exclude people. so create. &amp;rdquo; &amp;mdash; why the lucky stiff   Why go through all the hassle of manually building a Linux system from scratch when you can just download and install an existing one?
+ That is the question asked in section II: Audience of Linux From Scratch (LFS) project.</description>
+    </item>
+    
+    <item>
+      <title>The Bit Bang!</title>
+      <link>http://localhost:1313/posts/the-bit-bang/</link>
+      <pubDate>Sun, 06 Sep 2020 21:54:35 +0200</pubDate>
+      
+      <guid>http://localhost:1313/posts/the-bit-bang/</guid>
+      <description>&amp;ldquo; Let your worship keep count of the goats the fisherman is taking across, for if one escapes the memory there will be an end of the story, and it will be impossible to tell another word of it. &amp;rdquo; &amp;mdash; Miguel de Cervantes, Don Quixote  You are a nomadic shepherd. In order to keep accurate records and to be alert to instances of straying, shepherds must perform frequent head-counts of their flocks.</description>
+    </item>
+    
+  </channel>
+</rss>

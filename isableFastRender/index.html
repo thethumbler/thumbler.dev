@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en-us">
+
+  <head>
+	<meta name="generator" content="Hugo 0.69.0" /><script src="/livereload.js?port=1313&mindelay=10&v=2" data-no-instant defer></script>
+  <meta http-equiv="content-type" content="text/html; charset=utf-8">
+
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
+
+  <title>
+    
+      thumbler.dev &middot; 
+    
+  </title>
+
+  
+  <link rel="stylesheet" href="/css/poole.css">
+  <link rel="stylesheet" href="/css/syntax.css">
+  <link rel="stylesheet" href="/css/lanyon.css">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Glegoo:700">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=PT+Serif:400,400italic,700|PT+Sans:400">
+
+  
+  <link rel="apple-touch-icon-precomposed" sizes="144x144" href="/assets/apple-touch-icon-144-precomposed.png">
+  <link rel="shortcut icon" href="/assets/favicon.ico">
+
+  
+  <link rel="alternate" type="application/rss+xml" title="RSS" href="/atom.xml">
+</head>
+
+
+  <body>
+
+    
+<input type="checkbox" class="sidebar-checkbox" id="sidebar-checkbox">
+
+
+<div class="sidebar" id="sidebar">
+  <div class="sidebar-item">
+    <p>a hacking blog</p>
+  </div>
+
+  <nav class="sidebar-nav">
+    <a class="sidebar-nav-item  active " href="/">Home</a>
+    <a class="sidebar-nav-item " href="/post">Posts</a>
+    </nav>
+
+  <div class="sidebar-item">
+    <p>&copy; 2020. All rights reserved.</p>
+  </div>
+</div>
+
+
+    
+    <div class="wrap">
+      <div class="masthead">
+        <div class="container">
+          <h3 class="masthead-title">
+            <a href="/" title="Home">thumbler.dev</a>
+            <small></small>
+          </h3>
+        </div>
+      </div>
+
+      <div class="container content">
+
+
+
+
+
+<div class="posts">
+  
+    <div class="post">
+        <h1 class="post-title"><a href="http://localhost:1313/posts/lfs-in-an-hour-or-less/">Linux system in an hour or less</a></h1>
+        <span class="post-date">Sep 6, 2020</span>
+        <center style="font-style: italic; font-weight: bold; padding: 20px; color: #6a6a6a">
+    <span style="font-size: 30px">&ldquo;</span>
+        When you don’t create things, you become defined by your tastes rather than ability. Your tastes only narrow and exclude people. so create.
+    <span style="font-size: 30px">&rdquo;</span>
+    &mdash; why the lucky stiff
+</center>
+
+<p>Consider the following question from section <a href="http://www.linuxfromscratch.org/lfs/view/stable/prologue/audience.html">II: Audience</a> of <a href="http://www.linuxfromscratch.org">Linux From Scratch (LFS) project</a>:</p>
+<blockquote>
+<p>Why go through all the hassle of manually building a Linux system from scratch when you can just download and install an existing one?</p>
+</blockquote>
+<p>I don&rsquo;t have a compelling reason myself, and chances are, neither do you. But it&rsquo;s fun, so let&rsquo;s build a linux system from scratch, for sheer entertainment.</p>
+<p>We will go through building a very minimal linux system that just works to get an idea of how things work and interact together, we will build more advanced systems in later articles, but for now, let&rsquo;s stick with the very basics.</p>
+<p>In order to build a (minimal) Linux system we need to have:</p>
+<ul>
+<li>a Linux kernel,</li>
+<li>system libraries,</li>
+<li>system utils, and</li>
+<li>a shell</li>
+</ul>
+<p>In the following sections we will briefly discuss what each componenet is responsible for and why do we need it.</p>
+<h3 id="linux-kernel">Linux kernel</h3>
+<p>The kernel is the first part of the system that is loaded in memory, starts working and loads the rest of the system. It&rsquo;s a program responsible for bootstrapping and managing the resources of the system.</p>
+<p>The kernel abstracts away most hardware details so application developers wouldn&rsquo;t have to worry if they are reading files from a FAT32 partition on a spinning harddisk or reading a file from network over an InfiniBand connection.</p>
+<h3 id="system-libraries">System Libraries</h3>
+<p>The kernel exposes an ABI to applications that can be used to interact with the system components like devices, file systems, processes, networking, etc. However, the ABI exposed by the kernel is minimal and only offers the smallest possible set of routines required to operate the system.</p>
+<p>For more advanced system routines/functionality, we have user-space libraries. These libraries offer extra functionality not offered by the kernel directly, like compression, cryptography, rendering, etc.</p>
+<p>The most important library is the C Standard Library <code>libc</code>. This library acts as a glue/wrapper over kernel routines and offers some extra functionality. Almost all applications use <code>libc</code>. We will be using <a href="http://musl.libc.org/">musl-libc</a>, which is a small yet correct C Standard.</p>
+<h3 id="system-utils">System Utils</h3>
+<p>While system libraries offer enough functionality to use the system, we still need to write code to use them. System utils is a set of common applications that most people would need, such as <code>cat</code>, <code>ls</code>, <code>cp</code>, <code>mv</code>, etc.</p>
+<p>These utils are pre-written and can be used directly by users to execute common operations. In our case we will be using <a href="https://busybox.net/">BusyBox</a> which is a single binary that has many utils and can be used to build a small system.</p>
+<h3 id="shell">Shell</h3>
+<p>Finally, we need a shell. The shell is yet another program that is used by users directly to execute commands, combine programs to create pipelines, and offers some scripting interface.</p>
+<p>Luckily, BusyBox already provides a shell and we will be using it.</p>
+<h2 id="setting-up-the-environment">Setting up the environment</h2>
+<p>Create a directory to store everything related to this article, we will have a lot of files.</p>
+<p>We will be using <a href="https://www.qemu.org/">qemu</a> to test the system we build, make sure to install it.</p>
+<p>We use <a href="https://www.docker.com/">docker</a> to create a build environment that is consistent across distros.
+This is a minimal Dockerfile to create a docker image that includes all the packages required to build the system:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-Dockerfile" data-lang="Dockerfile"><span style="color:#66d9ef">FROM</span><span style="color:#e6db74"> alpine</span><span style="color:#960050;background-color:#1e0010">
+</span><span style="color:#960050;background-color:#1e0010"></span><span style="color:#66d9ef">RUN</span> apk add build-base gcc ncurses-dev xz<span style="color:#960050;background-color:#1e0010">
+</span></code></pre></div><p>Build the image</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">$ docker build -t lfs-build .
+</code></pre></div><p>Create a directory called <code>src/</code> to store all the source packages we will need along with a few directories under <code>/src/</code></p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">$ mkdir -p src/<span style="color:#f92672">{</span>boot,sysroot<span style="color:#f92672">}</span>
+</code></pre></div><p>Run the contaienr and mount <code>src/</code> inside it:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">$ docker run --rm -it -v <span style="color:#66d9ef">$(</span>pwd<span style="color:#66d9ef">)</span>/src:/src lfs-build
+</code></pre></div><p>All the following commands should be executed inside the container (unless otherwise specified).</p>
+<h2 id="building-the-kernel">Building the kernel</h2>
+<p>Head to <a href="https://www.kernel.org/">kernel.org</a> and fetch a kernel tarball of any (recent) kernel version. I&rsquo;m using <a href="https://cdn.kernel.org/pub/linux/kernel/v4.x/linux-4.14.200.tar.xz">4.14.200</a>.</p>
+<p>Download the tarball to <code>/src/</code> and extract it</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">$ wget https://cdn.kernel.org/pub/linux/kernel/v4.x/linux-4.14.200.tar.xz -P /src/
+$ cd /src; tar xJf linux-4.14.200.tar.xz
+$ cd linux-4.14.200
+</code></pre></div><p>The kernel is configured through a configuration file called <code>.config</code>, the file contains a set of params starting with <code>CONFIG_</code> that we can alter to enable/disable some kernel parts/modules and set some pre-defined values.</p>
+<blockquote>
+<p>Most distros provide the config used to build the kernel you&rsquo;re currently running, it&rsquo;s usually <code>/boot/config-$(uname -r)</code>, you can check it to know what params were used in your kernel.</p>
+</blockquote>
+<p>The default config for <code>x86_64</code> is rather huge and takes a lot of time to build. Since we only interest ourselves in a small system, we can disable most parts.</p>
+<p>Instead of starting from scratch or starting from the full default config, we will start with a <code>tinyconfig</code> bundled in the kernel. This is a minimal configuration that boots the kernel, but doesn&rsquo;t do much, we will use it as a starting point for our configuration. To generate a tiny <code>.config</code> file execute the following command:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">$ make tinyconfig
+</code></pre></div><p>You can then inspect <code>.config</code> file and see which configurations values are set, it&rsquo;s okay if you don&rsquo;t know/understand most of these values, but your luckiest guess is likely correct.</p>
+<p>While this config by itself is enough to boot the kernel, it&rsquo;s not enough for our purposes, we will need to edit a few parts. The kernel has a nice UI for easily editing configuration, execute the following command:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">$ make menuconfig
+</code></pre></div><p>You should be presented with a screen inside the terminal, use the following block as a guide to what params we need to enable, leave everything else as is.</p>
+<pre><code>[*] 64-bit kernel
+
+Device Drivers ---&gt;
+    Character devices ---&gt;
+        [*] Enable TTY
+
+General setup ---&gt;
+    [*] Initial RAM filesystem and RAM disk (initramfs/initrd) support
+    -*- Configure standard kernel features (expert users) ---&gt;
+        [*] Enable support for printk
+
+Executable file formats / Emulations ---&gt;
+    [*] Kernel support for ELF binaries
+    [*] Kernel support for scripts starting with #!
+</code></pre><p>Here&rsquo;s a breakdown if the params and why we need them:</p>
+<ul>
+<li><code>64-bit kernel</code>: the default <code>tinyconfig</code> builds a 32-bit kernel, most machines are 64-bit nowadays so we enable it.</li>
+<li><code>Enable TTY</code>: We need TTY support in order to run applications that need a terminal.</li>
+<li><code>Initial RAM filesystem and RAM disk</code>: Instead of having to support block devices, SCSI drivers, Filesystems, we will just package our entire system as a ramdisk image and load it in memory directly.</li>
+<li><code>Enable support for printk</code>: We enable <code>printk</code> support so we would get boot log messages and other console messages printed out.</li>
+<li><code>Kernel support for ELF binaries</code>: We enable <code>ELF</code> support in order to be able to run the system utils and applications.</li>
+<li><code>Kernel support for scripts starting with #!</code>: We enable shebang scripts support because it&rsquo;s heavily used.</li>
+</ul>
+<p>After saving the config, we are now ready to build the kernel, execute the following command and lean back, it shouldn&rsquo;t take more than a few minutes.</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">$ make -j<span style="color:#66d9ef">$(</span>nproc<span style="color:#66d9ef">)</span>
+</code></pre></div><p>After the kernel builds successfully, we need to install the kernel headers into our system root <code>sysroot</code>, and copy the kernel image to the <code>boot</code> directory.</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">$ make INSTALL_HDR_PATH<span style="color:#f92672">=</span>/src/sysroot/usr headers_install
+$ cp arch/x86/boot/bzImage /src/boot/vmlinuz
+</code></pre></div><p>Now we can test our kernel, try running it from the host machine by executing the following command:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">$ qemu-system-x86_64 -enable-kvm -m 128M -kernel boot/vmlinuz
+</code></pre></div><p>The kernel should attempt to boot and panic with a <code>not syncing: No working init found.</code> message.</p>
+<p>Now we need a working <code>init</code> process, which is provided by BusyBox as well. In order to build BusyBox, we need a working C Library.</p>
+<h2 id="building-musl-libc">Building musl-libc</h2>
+<p>Head to <a href="http://musl.libc.org/">musl.libc.org</a> and download the latest release. I&rsquo;m using <a href="http://musl.libc.org/releases/musl-1.2.1.tar.gz">musl-1.2.1</a>.</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">$ wget http://musl.libc.org/releases/musl-1.2.1.tar.gz -P /src/
+$ cd /src; tar xzf musl-1.2.1.tar.gz
+$ cd musl-1.2.1
+</code></pre></div><p>musl-libc uses a <code>configure</code> script for configuration like most normal applications. We only need to set <code>prefix</code> to <code>/usr</code>.</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">$ ./configure --prefix<span style="color:#f92672">=</span>/usr
+</code></pre></div><p>After the command succeeds, we should be ready to build and install musl-libc into our <code>sysroot</code>.</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">$ make -j<span style="color:#66d9ef">$(</span>nproc<span style="color:#66d9ef">)</span>
+$ make DESTDIR<span style="color:#f92672">=</span>/src/sysroot install
+</code></pre></div><p>This installs musl-libc into the sysroot, try looking around inside sysroot to see how it looks like.</p>
+<h2 id="building-busybox">Building BusyBox</h2>
+<p>We are now ready to build BusyBox! Head to <a href="https://busybox.net/downloads/">busybox.net/downloads</a> and fetch the latest release. I&rsquo;m using <a href="https://busybox.net/downloads/busybox-1.32.0.tar.bz2">busybox-1.32.0</a>.</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">$ wget https://busybox.net/downloads/busybox-1.32.0.tar.bz2 -P /src/
+$ cd /src; tar xjf busybox-1.32.0.tar.bz2
+$ cd busybox-1.32.0
+</code></pre></div><p>BusyBox is configured the same way Linux is configured.</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">$ make menuconfig
+</code></pre></div><p>We need to set a few values:</p>
+<pre><code class="language-conf" data-lang="conf">Settings ---&gt;
+    [*] Build static binary (no shared libs)
+    (/src/sysroot) Path to sysroot
+    (/src/sysroot) Destination path for 'make install' 
+
+Linux System Utilities ---&gt;
+    [ ] eject
+</code></pre><p>Then build and install BusyBox</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">$ make -j<span style="color:#66d9ef">$(</span>nproc<span style="color:#66d9ef">)</span>
+$ make install
+</code></pre></div><h2 id="making-initrd">Making initrd</h2>
+<p>Now that we have everything setup, we just need to create a ramdsik from our <code>sysroot</code>, ramdisks are CPIO archives (optionally compressed).</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">$ cd /src/sysroot; find . | cpio -oH newc &gt; ../boot/initrd.img
+</code></pre></div><p>We should now have <code>vmlinuz</code> and <code>initrd.img</code> under <code>/src/boot</code>.</p>
+<h2 id="running-it">Running it</h2>
+<p>On the host machine, try running qemu with the kernel and the ramdisk we just built.</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">$ qemu-kvm -m 512M -kernel src/boot/vmlinuz -initrd src/boot/initrd.img
+</code></pre></div><p>It should boot successfully and drop you to a shell prompt.</p>
+
+    </div>
+  
+    <div class="post">
+        <h1 class="post-title"><a href="http://localhost:1313/posts/the-bit-bang/">The Bit Bang!</a></h1>
+        <span class="post-date">Sep 6, 2020</span>
+        <center style="font-style: italic; font-weight: bold; padding: 20px; color: #6a6a6a">
+    <span style="font-size: 30px">&ldquo;</span>
+        Let your worship keep count of the goats the fisherman is taking across, for if one escapes the memory there will be an end of the story, and it will be impossible to tell another word of it.
+    <span style="font-size: 30px">&rdquo;</span>
+    &mdash; Miguel de Cervantes, Don Quixote
+</center>
+
+<p>You are a nomadic shepherd. In order to keep accurate records and to be alert to instances of straying, shepherds must perform frequent head-counts of their flocks.</p>
+<p>You didn&rsquo;t do the counting. The stones did it. Surely, you carried them from one pile to another, but the stones&ndash;themselves&ndash;had to carry the extremley complicated task of maintaing their physical state so that you can use them for counting.</p>
+<p>Here is a simple experiment, grab a ruler, and do the following:</p>
+<ul>
+<li>draw a line that spans from 0 to 5,</li>
+<li>move the ruler such that the 0 starts at the end of the line,</li>
+<li>draw a line that spans from 0 to 6 as a straight continuation to the first line,</li>
+<li>put the ruler back such that the 0 starts at the start of the entire line,</li>
+<li>record the number you see at the end of the line.</li>
+</ul>
+<p>You got 11, or 5+6. While it&rsquo;s obvious to <em>you</em>, you didn&rsquo;t have to know what 0, 5, 6 or 11 even are, you didn&rsquo;t have to know anything about counting or addition. You just had to carry a (relatively) simple set of operations in order without thinking. That&rsquo;s exactly what a computer is<sup id="fnref:1"><a href="#fn:1" class="footnote-ref" role="doc-noteref">1</a></sup>. Except of course, it has to be a machine. Tracing back the origins of the word <em>computer</em>, it comes from the latin computāre, which&ndash;among multiple meanings&ndash;literally means <em>to count</em>.</p>
+<section class="footnotes" role="doc-endnotes">
+<hr>
+<ol>
+<li id="fn:1" role="doc-endnote">
+<p>Well, not exactly, you&rsquo;ll have to define which sets of &ldquo;rules&rdquo; are allowed, and how it should carry them, but that&rsquo;s for later. <a href="#fnref:1" class="footnote-backref" role="doc-backlink">&#x21a9;&#xfe0e;</a></p>
+</li>
+</ol>
+</section>
+
+    </div>
+  
+</div>
+
+<div class="pagination">
+  
+  <span class="pagination-item older">Older</span>
+  
+
+  
+  <span class="pagination-item newer">Newer</span>
+  
+</div>
+
+      </div>
+    </div>
+
+    <label for="sidebar-checkbox" class="sidebar-toggle"></label>
+    
+  </body>
+</html>
+

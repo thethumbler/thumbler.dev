@@ -1,0 +1,191 @@
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>thumbler.dev </title>
+    <link>http://localhost:1313/</link>
+    <language>en-us</language>
+    <author></author>
+    <rights>(C) 2020</rights>
+    <updated>2020-09-06 21:54:35 &#43;0200 EET</updated>
+
+    
+      <item>
+        <title>Linux system in an hour or less</title>
+        <link>http://localhost:1313/posts/lfs-in-an-hour-or-less/</link>
+        <pubDate>Sun, 06 Sep 2020 21:54:35 EET</pubDate>
+        <author></author>
+        <guid>http://localhost:1313/posts/lfs-in-an-hour-or-less/</guid>
+        <description>&lt;center style=&#34;font-style: italic; font-weight: bold; padding: 20px; color: #6a6a6a&#34;&gt;
+    &lt;span style=&#34;font-size: 30px&#34;&gt;&amp;ldquo;&lt;/span&gt;
+        When you don’t create things, you become defined by your tastes rather than ability. Your tastes only narrow and exclude people. so create.
+    &lt;span style=&#34;font-size: 30px&#34;&gt;&amp;rdquo;&lt;/span&gt;
+    &amp;mdash; why the lucky stiff
+&lt;/center&gt;
+
+&lt;p&gt;Consider the following question from section &lt;a href=&#34;http://www.linuxfromscratch.org/lfs/view/stable/prologue/audience.html&#34;&gt;II: Audience&lt;/a&gt; of &lt;a href=&#34;http://www.linuxfromscratch.org&#34;&gt;Linux From Scratch (LFS) project&lt;/a&gt;:&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;Why go through all the hassle of manually building a Linux system from scratch when you can just download and install an existing one?&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;I don&amp;rsquo;t have a compelling reason myself, and chances are, neither do you. But it&amp;rsquo;s fun, so let&amp;rsquo;s build a linux system from scratch, for sheer entertainment.&lt;/p&gt;
+&lt;p&gt;We will go through building a very minimal linux system that just works to get an idea of how things work and interact together, we will build more advanced systems in later articles, but for now, let&amp;rsquo;s stick with the very basics.&lt;/p&gt;
+&lt;p&gt;In order to build a (minimal) Linux system we need to have:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;a Linux kernel,&lt;/li&gt;
+&lt;li&gt;system libraries,&lt;/li&gt;
+&lt;li&gt;system utils, and&lt;/li&gt;
+&lt;li&gt;a shell&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;In the following sections we will briefly discuss what each componenet is responsible for and why do we need it.&lt;/p&gt;
+&lt;h3 id=&#34;linux-kernel&#34;&gt;Linux kernel&lt;/h3&gt;
+&lt;p&gt;The kernel is the first part of the system that is loaded in memory, starts working and loads the rest of the system. It&amp;rsquo;s a program responsible for bootstrapping and managing the resources of the system.&lt;/p&gt;
+&lt;p&gt;The kernel abstracts away most hardware details so application developers wouldn&amp;rsquo;t have to worry if they are reading files from a FAT32 partition on a spinning harddisk or reading a file from network over an InfiniBand connection.&lt;/p&gt;
+&lt;h3 id=&#34;system-libraries&#34;&gt;System Libraries&lt;/h3&gt;
+&lt;p&gt;The kernel exposes an ABI to applications that can be used to interact with the system components like devices, file systems, processes, networking, etc. However, the ABI exposed by the kernel is minimal and only offers the smallest possible set of routines required to operate the system.&lt;/p&gt;
+&lt;p&gt;For more advanced system routines/functionality, we have user-space libraries. These libraries offer extra functionality not offered by the kernel directly, like compression, cryptography, rendering, etc.&lt;/p&gt;
+&lt;p&gt;The most important library is the C Standard Library &lt;code&gt;libc&lt;/code&gt;. This library acts as a glue/wrapper over kernel routines and offers some extra functionality. Almost all applications use &lt;code&gt;libc&lt;/code&gt;. We will be using &lt;a href=&#34;http://musl.libc.org/&#34;&gt;musl-libc&lt;/a&gt;, which is a small yet correct C Standard.&lt;/p&gt;
+&lt;h3 id=&#34;system-utils&#34;&gt;System Utils&lt;/h3&gt;
+&lt;p&gt;While system libraries offer enough functionality to use the system, we still need to write code to use them. System utils is a set of common applications that most people would need, such as &lt;code&gt;cat&lt;/code&gt;, &lt;code&gt;ls&lt;/code&gt;, &lt;code&gt;cp&lt;/code&gt;, &lt;code&gt;mv&lt;/code&gt;, etc.&lt;/p&gt;
+&lt;p&gt;These utils are pre-written and can be used directly by users to execute common operations. In our case we will be using &lt;a href=&#34;https://busybox.net/&#34;&gt;BusyBox&lt;/a&gt; which is a single binary that has many utils and can be used to build a small system.&lt;/p&gt;
+&lt;h3 id=&#34;shell&#34;&gt;Shell&lt;/h3&gt;
+&lt;p&gt;Finally, we need a shell. The shell is yet another program that is used by users directly to execute commands, combine programs to create pipelines, and offers some scripting interface.&lt;/p&gt;
+&lt;p&gt;Luckily, BusyBox already provides a shell and we will be using it.&lt;/p&gt;
+&lt;h2 id=&#34;setting-up-the-environment&#34;&gt;Setting up the environment&lt;/h2&gt;
+&lt;p&gt;Create a directory to store everything related to this article, we will have a lot of files.&lt;/p&gt;
+&lt;p&gt;We will be using &lt;a href=&#34;https://www.qemu.org/&#34;&gt;qemu&lt;/a&gt; to test the system we build, make sure to install it.&lt;/p&gt;
+&lt;p&gt;We use &lt;a href=&#34;https://www.docker.com/&#34;&gt;docker&lt;/a&gt; to create a build environment that is consistent across distros.
+This is a minimal Dockerfile to create a docker image that includes all the packages required to build the system:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-Dockerfile&#34; data-lang=&#34;Dockerfile&#34;&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;FROM&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt; alpine&lt;/span&gt;&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;
+&lt;/span&gt;&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;&lt;/span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;RUN&lt;/span&gt; apk add build-base gcc ncurses-dev xz&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;Build the image&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;$ docker build -t lfs-build .
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;Create a directory called &lt;code&gt;src/&lt;/code&gt; to store all the source packages we will need along with a few directories under &lt;code&gt;/src/&lt;/code&gt;&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;$ mkdir -p src/&lt;span style=&#34;color:#f92672&#34;&gt;{&lt;/span&gt;boot,sysroot&lt;span style=&#34;color:#f92672&#34;&gt;}&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;Run the contaienr and mount &lt;code&gt;src/&lt;/code&gt; inside it:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;$ docker run --rm -it -v &lt;span style=&#34;color:#66d9ef&#34;&gt;$(&lt;/span&gt;pwd&lt;span style=&#34;color:#66d9ef&#34;&gt;)&lt;/span&gt;/src:/src lfs-build
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;All the following commands should be executed inside the container (unless otherwise specified).&lt;/p&gt;
+&lt;h2 id=&#34;building-the-kernel&#34;&gt;Building the kernel&lt;/h2&gt;
+&lt;p&gt;Head to &lt;a href=&#34;https://www.kernel.org/&#34;&gt;kernel.org&lt;/a&gt; and fetch a kernel tarball of any (recent) kernel version. I&amp;rsquo;m using &lt;a href=&#34;https://cdn.kernel.org/pub/linux/kernel/v4.x/linux-4.14.200.tar.xz&#34;&gt;4.14.200&lt;/a&gt;.&lt;/p&gt;
+&lt;p&gt;Download the tarball to &lt;code&gt;/src/&lt;/code&gt; and extract it&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;$ wget https://cdn.kernel.org/pub/linux/kernel/v4.x/linux-4.14.200.tar.xz -P /src/
+$ cd /src; tar xJf linux-4.14.200.tar.xz
+$ cd linux-4.14.200
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;The kernel is configured through a configuration file called &lt;code&gt;.config&lt;/code&gt;, the file contains a set of params starting with &lt;code&gt;CONFIG_&lt;/code&gt; that we can alter to enable/disable some kernel parts/modules and set some pre-defined values.&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;Most distros provide the config used to build the kernel you&amp;rsquo;re currently running, it&amp;rsquo;s usually &lt;code&gt;/boot/config-$(uname -r)&lt;/code&gt;, you can check it to know what params were used in your kernel.&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;The default config for &lt;code&gt;x86_64&lt;/code&gt; is rather huge and takes a lot of time to build. Since we only interest ourselves in a small system, we can disable most parts.&lt;/p&gt;
+&lt;p&gt;Instead of starting from scratch or starting from the full default config, we will start with a &lt;code&gt;tinyconfig&lt;/code&gt; bundled in the kernel. This is a minimal configuration that boots the kernel, but doesn&amp;rsquo;t do much, we will use it as a starting point for our configuration. To generate a tiny &lt;code&gt;.config&lt;/code&gt; file execute the following command:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;$ make tinyconfig
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;You can then inspect &lt;code&gt;.config&lt;/code&gt; file and see which configurations values are set, it&amp;rsquo;s okay if you don&amp;rsquo;t know/understand most of these values, but your luckiest guess is likely correct.&lt;/p&gt;
+&lt;p&gt;While this config by itself is enough to boot the kernel, it&amp;rsquo;s not enough for our purposes, we will need to edit a few parts. The kernel has a nice UI for easily editing configuration, execute the following command:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;$ make menuconfig
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;You should be presented with a screen inside the terminal, use the following block as a guide to what params we need to enable, leave everything else as is.&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;[*] 64-bit kernel
+
+Device Drivers ---&amp;gt;
+    Character devices ---&amp;gt;
+        [*] Enable TTY
+
+General setup ---&amp;gt;
+    [*] Initial RAM filesystem and RAM disk (initramfs/initrd) support
+    -*- Configure standard kernel features (expert users) ---&amp;gt;
+        [*] Enable support for printk
+
+Executable file formats / Emulations ---&amp;gt;
+    [*] Kernel support for ELF binaries
+    [*] Kernel support for scripts starting with #!
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;Here&amp;rsquo;s a breakdown if the params and why we need them:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;64-bit kernel&lt;/code&gt;: the default &lt;code&gt;tinyconfig&lt;/code&gt; builds a 32-bit kernel, most machines are 64-bit nowadays so we enable it.&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;Enable TTY&lt;/code&gt;: We need TTY support in order to run applications that need a terminal.&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;Initial RAM filesystem and RAM disk&lt;/code&gt;: Instead of having to support block devices, SCSI drivers, Filesystems, we will just package our entire system as a ramdisk image and load it in memory directly.&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;Enable support for printk&lt;/code&gt;: We enable &lt;code&gt;printk&lt;/code&gt; support so we would get boot log messages and other console messages printed out.&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;Kernel support for ELF binaries&lt;/code&gt;: We enable &lt;code&gt;ELF&lt;/code&gt; support in order to be able to run the system utils and applications.&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;Kernel support for scripts starting with #!&lt;/code&gt;: We enable shebang scripts support because it&amp;rsquo;s heavily used.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;After saving the config, we are now ready to build the kernel, execute the following command and lean back, it shouldn&amp;rsquo;t take more than a few minutes.&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;$ make -j&lt;span style=&#34;color:#66d9ef&#34;&gt;$(&lt;/span&gt;nproc&lt;span style=&#34;color:#66d9ef&#34;&gt;)&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;After the kernel builds successfully, we need to install the kernel headers into our system root &lt;code&gt;sysroot&lt;/code&gt;, and copy the kernel image to the &lt;code&gt;boot&lt;/code&gt; directory.&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;$ make INSTALL_HDR_PATH&lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt;/src/sysroot/usr headers_install
+$ cp arch/x86/boot/bzImage /src/boot/vmlinuz
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;Now we can test our kernel, try running it from the host machine by executing the following command:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;$ qemu-system-x86_64 -enable-kvm -m 128M -kernel boot/vmlinuz
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;The kernel should attempt to boot and panic with a &lt;code&gt;not syncing: No working init found.&lt;/code&gt; message.&lt;/p&gt;
+&lt;p&gt;Now we need a working &lt;code&gt;init&lt;/code&gt; process, which is provided by BusyBox as well. In order to build BusyBox, we need a working C Library.&lt;/p&gt;
+&lt;h2 id=&#34;building-musl-libc&#34;&gt;Building musl-libc&lt;/h2&gt;
+&lt;p&gt;Head to &lt;a href=&#34;http://musl.libc.org/&#34;&gt;musl.libc.org&lt;/a&gt; and download the latest release. I&amp;rsquo;m using &lt;a href=&#34;http://musl.libc.org/releases/musl-1.2.1.tar.gz&#34;&gt;musl-1.2.1&lt;/a&gt;.&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;$ wget http://musl.libc.org/releases/musl-1.2.1.tar.gz -P /src/
+$ cd /src; tar xzf musl-1.2.1.tar.gz
+$ cd musl-1.2.1
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;musl-libc uses a &lt;code&gt;configure&lt;/code&gt; script for configuration like most normal applications. We only need to set &lt;code&gt;prefix&lt;/code&gt; to &lt;code&gt;/usr&lt;/code&gt;.&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;$ ./configure --prefix&lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt;/usr
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;After the command succeeds, we should be ready to build and install musl-libc into our &lt;code&gt;sysroot&lt;/code&gt;.&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;$ make -j&lt;span style=&#34;color:#66d9ef&#34;&gt;$(&lt;/span&gt;nproc&lt;span style=&#34;color:#66d9ef&#34;&gt;)&lt;/span&gt;
+$ make DESTDIR&lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt;/src/sysroot install
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;This installs musl-libc into the sysroot, try looking around inside sysroot to see how it looks like.&lt;/p&gt;
+&lt;h2 id=&#34;building-busybox&#34;&gt;Building BusyBox&lt;/h2&gt;
+&lt;p&gt;We are now ready to build BusyBox! Head to &lt;a href=&#34;https://busybox.net/downloads/&#34;&gt;busybox.net/downloads&lt;/a&gt; and fetch the latest release. I&amp;rsquo;m using &lt;a href=&#34;https://busybox.net/downloads/busybox-1.32.0.tar.bz2&#34;&gt;busybox-1.32.0&lt;/a&gt;.&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;$ wget https://busybox.net/downloads/busybox-1.32.0.tar.bz2 -P /src/
+$ cd /src; tar xjf busybox-1.32.0.tar.bz2
+$ cd busybox-1.32.0
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;BusyBox is configured the same way Linux is configured.&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;$ make menuconfig
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;We need to set a few values:&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-conf&#34; data-lang=&#34;conf&#34;&gt;Settings ---&amp;gt;
+    [*] Build static binary (no shared libs)
+    (/src/sysroot) Path to sysroot
+    (/src/sysroot) Destination path for &#39;make install&#39; 
+
+Linux System Utilities ---&amp;gt;
+    [ ] eject
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;Then build and install BusyBox&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;$ make -j&lt;span style=&#34;color:#66d9ef&#34;&gt;$(&lt;/span&gt;nproc&lt;span style=&#34;color:#66d9ef&#34;&gt;)&lt;/span&gt;
+$ make install
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;h2 id=&#34;making-initrd&#34;&gt;Making initrd&lt;/h2&gt;
+&lt;p&gt;Now that we have everything setup, we just need to create a ramdsik from our &lt;code&gt;sysroot&lt;/code&gt;, ramdisks are CPIO archives (optionally compressed).&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;$ cd /src/sysroot; find . | cpio -oH newc &amp;gt; ../boot/initrd.img
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;We should now have &lt;code&gt;vmlinuz&lt;/code&gt; and &lt;code&gt;initrd.img&lt;/code&gt; under &lt;code&gt;/src/boot&lt;/code&gt;.&lt;/p&gt;
+&lt;h2 id=&#34;running-it&#34;&gt;Running it&lt;/h2&gt;
+&lt;p&gt;On the host machine, try running qemu with the kernel and the ramdisk we just built.&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;$ qemu-kvm -m 512M -kernel src/boot/vmlinuz -initrd src/boot/initrd.img
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;It should boot successfully and drop you to a shell prompt.&lt;/p&gt;
+</description>
+      </item>
+    
+      <item>
+        <title>The Bit Bang!</title>
+        <link>http://localhost:1313/posts/the-bit-bang/</link>
+        <pubDate>Sun, 06 Sep 2020 21:54:35 EET</pubDate>
+        <author></author>
+        <guid>http://localhost:1313/posts/the-bit-bang/</guid>
+        <description>&lt;center style=&#34;font-style: italic; font-weight: bold; padding: 20px; color: #6a6a6a&#34;&gt;
+    &lt;span style=&#34;font-size: 30px&#34;&gt;&amp;ldquo;&lt;/span&gt;
+        Let your worship keep count of the goats the fisherman is taking across, for if one escapes the memory there will be an end of the story, and it will be impossible to tell another word of it.
+    &lt;span style=&#34;font-size: 30px&#34;&gt;&amp;rdquo;&lt;/span&gt;
+    &amp;mdash; Miguel de Cervantes, Don Quixote
+&lt;/center&gt;
+
+&lt;p&gt;You are a nomadic shepherd. In order to keep accurate records and to be alert to instances of straying, shepherds must perform frequent head-counts of their flocks.&lt;/p&gt;
+&lt;p&gt;You didn&amp;rsquo;t do the counting. The stones did it. Surely, you carried them from one pile to another, but the stones&amp;ndash;themselves&amp;ndash;had to carry the extremley complicated task of maintaing their physical state so that you can use them for counting.&lt;/p&gt;
+&lt;p&gt;Here is a simple experiment, grab a ruler, and do the following:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;draw a line that spans from 0 to 5,&lt;/li&gt;
+&lt;li&gt;move the ruler such that the 0 starts at the end of the line,&lt;/li&gt;
+&lt;li&gt;draw a line that spans from 0 to 6 as a straight continuation to the first line,&lt;/li&gt;
+&lt;li&gt;put the ruler back such that the 0 starts at the start of the entire line,&lt;/li&gt;
+&lt;li&gt;record the number you see at the end of the line.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;You got 11, or 5+6. While it&amp;rsquo;s obvious to &lt;em&gt;you&lt;/em&gt;, you didn&amp;rsquo;t have to know what 0, 5, 6 or 11 even are, you didn&amp;rsquo;t have to know anything about counting or addition. You just had to carry a (relatively) simple set of operations in order without thinking. That&amp;rsquo;s exactly what a computer is&lt;sup id=&#34;fnref:1&#34;&gt;&lt;a href=&#34;#fn:1&#34; class=&#34;footnote-ref&#34; role=&#34;doc-noteref&#34;&gt;1&lt;/a&gt;&lt;/sup&gt;. Except of course, it has to be a machine. Tracing back the origins of the word &lt;em&gt;computer&lt;/em&gt;, it comes from the latin computāre, which&amp;ndash;among multiple meanings&amp;ndash;literally means &lt;em&gt;to count&lt;/em&gt;.&lt;/p&gt;
+&lt;section class=&#34;footnotes&#34; role=&#34;doc-endnotes&#34;&gt;
+&lt;hr&gt;
+&lt;ol&gt;
+&lt;li id=&#34;fn:1&#34; role=&#34;doc-endnote&#34;&gt;
+&lt;p&gt;Well, not exactly, you&amp;rsquo;ll have to define which sets of &amp;ldquo;rules&amp;rdquo; are allowed, and how it should carry them, but that&amp;rsquo;s for later. &lt;a href=&#34;#fnref:1&#34; class=&#34;footnote-backref&#34; role=&#34;doc-backlink&#34;&gt;&amp;#x21a9;&amp;#xfe0e;&lt;/a&gt;&lt;/p&gt;
+&lt;/li&gt;
+&lt;/ol&gt;
+&lt;/section&gt;
+</description>
+      </item>
+    
+
+  </channel>
+</rss>
