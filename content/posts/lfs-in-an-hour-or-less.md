@@ -1,6 +1,6 @@
 ---
 title: Linux system in an hour or less
-date: 2020-09-06T21:54:35+02:00
+date: 2020-10-14T00:00:00+02:00
 ---
 {{<quote "why the lucky stiff">}}When you don’t create things, you become defined by your tastes rather than ability. Your tastes only narrow and exclude people. so create.{{</quote>}}
 
