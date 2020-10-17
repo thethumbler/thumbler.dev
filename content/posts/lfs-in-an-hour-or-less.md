@@ -63,7 +63,7 @@ Build the image
 $ docker build -t lfs-build .
 ```
 
-Create a directory called `src/` to store all the source packages we will need along with a few directories under `/src/`
+Create a directory called `src/` to store all the source packages we will need along with a few directories under `src/`
 ```bash
 $ mkdir -p src/{boot,sysroot}
 ```
@@ -123,7 +123,7 @@ Executable file formats / Emulations --->
     [*] Kernel support for scripts starting with #!
 ```
 
-Here's a breakdown if the params and why we need them:
+Here's a breakdown of the params and why we need them:
 * `64-bit kernel`: the default `tinyconfig` builds a 32-bit kernel, most machines are 64-bit nowadays so we enable it.
 * `Enable TTY`: We need TTY support in order to run applications that need a terminal.
 * `Initial RAM filesystem and RAM disk`: Instead of having to support block devices, SCSI drivers, Filesystems, we will just package our entire system as a ramdisk image and load it in memory directly.
@@ -150,6 +150,9 @@ $ qemu-system-x86_64 -enable-kvm -m 128M -kernel boot/vmlinuz
 The kernel should attempt to boot and panic with a `not syncing: No working init found.` message.
 
 Now we need a working `init` process, which is provided by BusyBox as well. In order to build BusyBox, we need a working C Library.
+
+> `init` is the first started by the kernel, it's supposed to bootstrap the rest of the system components.
+> `systemd` is the most widely used init process.
 
 ## Building musl-libc
 Head to [musl.libc.org](http://musl.libc.org/) and download the latest release. I'm using [musl-1.2.1](http://musl.libc.org/releases/musl-1.2.1.tar.gz).

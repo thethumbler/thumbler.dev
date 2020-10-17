@@ -134,7 +134,7 @@ This is a minimal Dockerfile to create a docker image that includes all the pack
 </span><span style="color:#960050;background-color:#1e0010"></span><span style="color:#66d9ef">RUN</span> apk add build-base gcc ncurses-dev xz<span style="color:#960050;background-color:#1e0010">
 </span></code></pre></div><p>Build the image</p>
 <div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">$ docker build -t lfs-build .
-</code></pre></div><p>Create a directory called <code>src/</code> to store all the source packages we will need along with a few directories under <code>/src/</code></p>
+</code></pre></div><p>Create a directory called <code>src/</code> to store all the source packages we will need along with a few directories under <code>src/</code></p>
 <div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">$ mkdir -p src/<span style="color:#f92672">{</span>boot,sysroot<span style="color:#f92672">}</span>
 </code></pre></div><p>Run the contaienr and mount <code>src/</code> inside it:</p>
 <div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">$ docker run --rm -it -v <span style="color:#66d9ef">$(</span>pwd<span style="color:#66d9ef">)</span>/src:/src lfs-build
@@ -170,7 +170,7 @@ General setup ---&gt;
 Executable file formats / Emulations ---&gt;
     [*] Kernel support for ELF binaries
     [*] Kernel support for scripts starting with #!
-</code></pre><p>Here&rsquo;s a breakdown if the params and why we need them:</p>
+</code></pre><p>Here&rsquo;s a breakdown of the params and why we need them:</p>
 <ul>
 <li><code>64-bit kernel</code>: the default <code>tinyconfig</code> builds a 32-bit kernel, most machines are 64-bit nowadays so we enable it.</li>
 <li><code>Enable TTY</code>: We need TTY support in order to run applications that need a terminal.</li>
@@ -188,6 +188,10 @@ $ cp arch/x86/boot/bzImage /src/boot/vmlinuz
 <div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">$ qemu-system-x86_64 -enable-kvm -m 128M -kernel boot/vmlinuz
 </code></pre></div><p>The kernel should attempt to boot and panic with a <code>not syncing: No working init found.</code> message.</p>
 <p>Now we need a working <code>init</code> process, which is provided by BusyBox as well. In order to build BusyBox, we need a working C Library.</p>
+<blockquote>
+<p><code>init</code> is the first started by the kernel, it&rsquo;s supposed to bootstrap the rest of the system components.
+<code>systemd</code> is the most widely used init process.</p>
+</blockquote>
 <h2 id="building-musl-libc">Building musl-libc</h2>
 <p>Head to <a href="http://musl.libc.org/">musl.libc.org</a> and download the latest release. I&rsquo;m using <a href="http://musl.libc.org/releases/musl-1.2.1.tar.gz">musl-1.2.1</a>.</p>
 <div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">$ wget http://musl.libc.org/releases/musl-1.2.1.tar.gz -P /src/
