@@ -32,7 +32,7 @@ The kernel exposes an ABI to applications that can be used to interact with the 
 
 For more advanced system routines/functionality, we have user-space libraries. These libraries offer extra functionality not offered by the kernel directly, like compression, cryptography, rendering, etc.
 
-The most important library is the C Standard Library `libc`. This library acts as a glue/wrapper over kernel routines and offers some extra functionality. Almost all applications use `libc`. We will be using [musl-libc](http://musl.libc.org/), which is a small yet correct C Standard.
+The most important library is the C Standard Library `libc`. This library acts as a glue/wrapper over kernel routines and offers some extra functionality. Almost all applications use `libc`. We will be using [musl-libc](http://musl.libc.org/), which is a small yet correct C standard library.
 
 
 ### System Utils
@@ -220,3 +220,6 @@ On the host machine, try running qemu with the kernel and the ramdisk we just bu
 $ qemu-kvm -m 512M -kernel src/boot/vmlinuz -initrd src/boot/initrd.img
 ```
 It should boot successfully and drop you to a shell prompt.
+
+# Summary
+In this article we went through building a very minimalistic linux system with all the _required_ components, it's far from usable though. You can tinker with it a bit and maybe make it more usable. In later articles we will get more in depth for each component, how it works and how to build a fully functional system.
