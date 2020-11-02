@@ -112,7 +112,7 @@
 <h3 id="system-libraries">System Libraries</h3>
 <p>The kernel exposes an ABI to applications that can be used to interact with the system components like devices, file systems, processes, networking, etc. However, the ABI exposed by the kernel is minimal and only offers the smallest possible set of routines required to operate the system.</p>
 <p>For more advanced system routines/functionality, we have user-space libraries. These libraries offer extra functionality not offered by the kernel directly, like compression, cryptography, rendering, etc.</p>
-<p>The most important library is the C Standard Library <code>libc</code>. This library acts as a glue/wrapper over kernel routines and offers some extra functionality. Almost all applications use <code>libc</code>. We will be using <a href="http://musl.libc.org/">musl-libc</a>, which is a small yet correct C Standard.</p>
+<p>The most important library is the C Standard Library <code>libc</code>. This library acts as a glue/wrapper over kernel routines and offers some extra functionality. Almost all applications use <code>libc</code>. We will be using <a href="http://musl.libc.org/">musl-libc</a>, which is a small yet correct C standard library.</p>
 <h3 id="system-utils">System Utils</h3>
 <p>While system libraries offer enough functionality to use the system, we still need to write code to use them. System utils is a set of common applications that most people would need, such as <code>cat</code>, <code>ls</code>, <code>cp</code>, <code>mv</code>, etc.</p>
 <p>These utils are pre-written and can be used directly by users to execute common operations. In our case we will be using <a href="https://busybox.net/">BusyBox</a> which is a single binary that has many utils and can be used to build a small system.</p>
@@ -130,7 +130,7 @@ This is a minimal Dockerfile to create a docker image that includes all the pack
 <div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">$ docker build -t lfs-build .
 </code></pre></div><p>Create a directory called <code>src/</code> to store all the source packages we will need along with a few directories under <code>src/</code></p>
 <div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">$ mkdir -p src/<span style="color:#f92672">{</span>boot,sysroot<span style="color:#f92672">}</span>
-</code></pre></div><p>Run the contaienr and mount <code>src/</code> inside it:</p>
+</code></pre></div><p>Run the container and mount <code>src/</code> inside it:</p>
 <div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">$ docker run --rm -it -v <span style="color:#66d9ef">$(</span>pwd<span style="color:#66d9ef">)</span>/src:/src lfs-build
 </code></pre></div><p>All the following commands should be executed inside the container (unless otherwise specified).</p>
 <h2 id="building-the-kernel">Building the kernel</h2>
@@ -183,7 +183,7 @@ $ cp arch/x86/boot/bzImage /src/boot/vmlinuz
 </code></pre></div><p>The kernel should attempt to boot and panic with a <code>not syncing: No working init found.</code> message.</p>
 <p>Now we need a working <code>init</code> process, which is provided by BusyBox as well. In order to build BusyBox, we need a working C Library.</p>
 <blockquote>
-<p><code>init</code> is the first started by the kernel, it&rsquo;s supposed to bootstrap the rest of the system components.
+<p><code>init</code> is the first process started by the kernel, it&rsquo;s supposed to bootstrap the rest of the system components.
 <code>systemd</code> is the most widely used init process.</p>
 </blockquote>
 <h2 id="building-musl-libc">Building musl-libc</h2>
@@ -223,6 +223,8 @@ $ make install
 <p>On the host machine, try running qemu with the kernel and the ramdisk we just built.</p>
 <div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">$ qemu-kvm -m 512M -kernel src/boot/vmlinuz -initrd src/boot/initrd.img
 </code></pre></div><p>It should boot successfully and drop you to a shell prompt.</p>
+<h1 id="summary">Summary</h1>
+<p>In this article we went through building a very minimalistic linux system with all the <em>required</em> components, it&rsquo;s far from usable though. You can tinker with it a bit and maybe make it more usable. In later articles we will get more in depth for each component, how it works and how to build a fully functional system.</p>
 
 </div>
 

@@ -68,7 +68,7 @@ Create a directory called `src/` to store all the source packages we will need a
 $ mkdir -p src/{boot,sysroot}
 ```
 
-Run the contaienr and mount `src/` inside it:
+Run the container and mount `src/` inside it:
 ```bash
 $ docker run --rm -it -v $(pwd)/src:/src lfs-build
 ```
@@ -151,7 +151,7 @@ The kernel should attempt to boot and panic with a `not syncing: No working init
 
 Now we need a working `init` process, which is provided by BusyBox as well. In order to build BusyBox, we need a working C Library.
 
-> `init` is the first started by the kernel, it's supposed to bootstrap the rest of the system components.
+> `init` is the first process started by the kernel, it's supposed to bootstrap the rest of the system components.
 > `systemd` is the most widely used init process.
 
 ## Building musl-libc
